@@ -232,21 +232,25 @@ class BooksController extends Controller
 
     public function returnBack($book_id)
     {
-        $borrowLog = BorrowLog::where('user_id', Auth::user()->id)
-            ->where('book_id', $book_id)
-            ->where('is_returned', 0)
-            ->first();
-        if ($borrowLog) {
-            $borrowLog->is_returned = true;
-            $borrowLog->save();
-            
-            Session::flash("flash_notification", [
-                "level"     => "success",
-                "message"   => "Berhasil mengembalikan " . $borrowLog->book->title
-                ]);
-            }
+    $borrowLog = BorrowLog::where('user_id', Auth::user()->id)
+        ->where('book_id', $book_id)
+        ->where('is_returned', 0)
+        ->first();
 
-        return redirect('/home');
+    if ($borrowLog) {
+        $borrowLog->is_returned = true;
+        $borrowLog->save();
+
+        // Ganti increment('stock') jadi increment('amount')
+        $borrowLog->book->increment('amount');
+        
+        Session::flash("flash_notification", [
+            "level"     => "success",
+            "message"   => "Berhasil mengembalikan " . $borrowLog->book->title
+        ]);
+    }
+
+    return redirect('/home');
     }
 
     public function export(){
